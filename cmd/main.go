@@ -11,17 +11,20 @@ import (
 	"time"
 )
 
-// 检查本地端口是否开放
-func isLocalPortOpen(port string) bool {
-	ln, err := net.Listen("tcp", ":"+port)
-	if err != nil {
-		return false
-	}
-	ln.Close()
-	return true
+type Result struct {
+	Platform string
+	Status   string
 }
 
-// 检测是否可连接服务器的指定端口
+func isLocalPortOpen(port string) string {
+	ln, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		return "✘"
+	}
+	ln.Close()
+	return "✔"
+}
+
 func checkConnection(host string, port string) string {
 	address := net.JoinHostPort(host, port)
 	conn, err := net.DialTimeout("tcp", address, 5*time.Second)
@@ -42,6 +45,7 @@ func checkConnection(host string, port string) string {
 }
 
 func emailCheck() string {
+	localServers := []string{"25", "465", "110", "995", "143", "993"}
 	smtpServers := map[string]string{
 		"Gmail":     "smtp.gmail.com",
 		"163":       "smtp.163.com",
@@ -91,46 +95,140 @@ func emailCheck() string {
 		"Sina":      "imap.sina.com",
 	}
 	var wg sync.WaitGroup
-	resultChan := make(chan string, len(smtpServers)*3)
-	checkAll := func(name string, smtpHost, pop3Host, imapHost string) {
+	localChan := make(chan Result, len(localServers))
+	smtpChan := make(chan Result, len(smtpServers))
+	pop3Chan := make(chan Result, len(pop3Servers))
+	imapChan := make(chan Result, len(imapServers))
+	smtpsChan := make(chan Result, len(smtpServers))
+	pop3sChan := make(chan Result, len(pop3Servers))
+	imapsChan := make(chan Result, len(imapServers))
+	checkLocal := func(port string) {
 		defer wg.Done()
-		smtpResult := checkConnection(smtpHost, "25")
-		pop3Result := checkConnection(pop3Host, "110")
-		imapResult := checkConnection(imapHost, "143")
-		resultChan <- fmt.Sprintf("%-9s %-4s %-4s %-4s", name, smtpResult, pop3Result, imapResult)
+		localResult := isLocalPortOpen(port)
+		localChan <- Result{port, localResult}
 	}
-	for name := range smtpServers {
+	checkSMTP := func(name, host string) {
+		defer wg.Done()
+		smtpResult := checkConnection(host, "25")
+		smtpChan <- Result{name, smtpResult}
+	}
+	checkSMTPS := func(name, host string) {
+		defer wg.Done()
+		smtpSSLResult := checkConnection(host, "465")
+		smtpsChan <- Result{name, smtpSSLResult}
+	}
+	checkPOP3 := func(name, host string) {
+		defer wg.Done()
+		pop3Result := checkConnection(host, "110")
+		pop3Chan <- Result{name, pop3Result}
+	}
+	checkPOP3S := func(name, host string) {
+		defer wg.Done()
+		pop3SSLResult := checkConnection(host, "995")
+		pop3sChan <- Result{name, pop3SSLResult}
+	}
+	checkIMAP := func(name, host string) {
+		defer wg.Done()
+		imapResult := checkConnection(host, "143")
+		imapChan <- Result{name, imapResult}
+	}
+	checkIMAPS := func(name, host string) {
+		defer wg.Done()
+		imapSSLResult := checkConnection(host, "993")
+		imapsChan <- Result{name, imapSSLResult}
+	}
+	for _, port := range localServers {
 		wg.Add(1)
-		go checkAll(name, smtpServers[name], pop3Servers[name], imapServers[name])
+		go checkLocal(port)
+	}
+	for name, smtpHost := range smtpServers {
+		wg.Add(1)
+		go checkSMTP(name, smtpHost)
+	}
+	for name, smtpHost := range smtpServers {
+		wg.Add(1)
+		go checkSMTPS(name, smtpHost)
+	}
+	for name, pop3Host := range pop3Servers {
+		wg.Add(1)
+		go checkPOP3(name, pop3Host)
+	}
+	for name, pop3Host := range pop3Servers {
+		wg.Add(1)
+		go checkPOP3S(name, pop3Host)
+	}
+	for name, imapHost := range imapServers {
+		wg.Add(1)
+		go checkIMAP(name, imapHost)
+	}
+	for name, imapHost := range imapServers {
+		wg.Add(1)
+		go checkIMAPS(name, imapHost)
 	}
 	wg.Wait()
-	close(resultChan)
+	close(localChan)
+	close(smtpChan)
+	close(pop3Chan)
+	close(imapChan)
+	close(smtpsChan)
+	close(pop3sChan)
+	close(imapsChan)
+	//转换通道提取数据
+	temp := []string{}
+	smtpChanMap, smtpsChanMap, pop3ChanMap, pop3sChanMap, imapChanMap, imapsChanMap := map[string]string{}, map[string]string{}, map[string]string{}, map[string]string{}, map[string]string{}, map[string]string{}
+	wg.Add(7)
+	// 使用goroutine并发处理每个通道
+	go func() {
+		defer wg.Done()
+		for m := range localChan {
+			temp = append(temp, m.Status)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for m := range smtpChan {
+			smtpChanMap[m.Platform] = m.Status
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for m := range smtpsChan {
+			smtpsChanMap[m.Platform] = m.Status
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for m := range pop3Chan {
+			pop3ChanMap[m.Platform] = m.Status
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for m := range pop3sChan {
+			pop3sChanMap[m.Platform] = m.Status
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for m := range imapChan {
+			imapChanMap[m.Platform] = m.Status
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for m := range imapsChan {
+			imapsChanMap[m.Platform] = m.Status
+		}
+	}()
+	wg.Wait()
 	var results []string
-	for result := range resultChan {
-		results = append(results, result)
+	results = append(results, fmt.Sprintf("%-9s %-4s %-4s %-4s %-4s %-4s %-4s", "Platform", "SMTP", "SMTPS", "POP3", "POP3S", "IMAP", "IMAPS"))
+	results = append(results, fmt.Sprintf("%-10s%-4s %-4s %-4s %-4s %-4s %-4s", "LocalPort", temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]))
+	for name, _ := range smtpServers {
+		results = append(results, fmt.Sprintf("%-10s%-4s %-4s %-4s %-4s %-4s %-4s", name,
+			smtpChanMap[name], smtpsChanMap[name], pop3ChanMap[name], pop3sChanMap[name], imapChanMap[name], imapsChanMap[name]))
 	}
-	var res, status25, status110, status143 string
-	if isLocalPortOpen("25") {
-		status25 = "✔"
-	} else {
-		status25 = "✘"
-	}
-	if isLocalPortOpen("110") {
-		status110 = "✔"
-	} else {
-		status110 = "✘"
-	}
-	if isLocalPortOpen("143") {
-		status143 = "✔"
-	} else {
-		status143 = "✘"
-	}
-	res += fmt.Sprintf("%-8s %-4s %-4s %-4s\n", "Platform", "SMTP", "POP3", "IMAP")
-	res += fmt.Sprintf("%-10s%-4s %-4s %-4s\n", "LocalPort", status25, status110, status143)
-	for _, result := range results {
-		res += result + "\n"
-	}
-	return res
+	return strings.Join(results, "\n")
 }
 
 func main() {
@@ -140,5 +238,5 @@ func main() {
 	}()
 	fmt.Println("项目地址:", "https://github.com/oneclickvirt/portchecker")
 	res := emailCheck()
-	fmt.Printf(res)
+	fmt.Printf("%s\n", res)
 }
