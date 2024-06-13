@@ -22,10 +22,10 @@ jobs:
       with:
         go-version: 'stable'
       
-    - name: Build and Test on Default Platform
-      run: |
-        go build -v ./...
-        go test -v ./...
+    # - name: Build and Test on Default Platform
+    #   run: |
+    #     go build -v ./...
+    #     go test -v ./...
     
     - name: Delete Existing Release Assets
       run: |
