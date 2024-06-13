@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"net"
@@ -9,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/oneclickvirt/portchecker/model"
 )
 
 type Result struct {
@@ -44,64 +47,34 @@ func checkConnection(host string, port string) string {
 	return status
 }
 
+func checkConnectionSSL(host string, port string) string {
+	address := net.JoinHostPort(host, port)
+	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: 5 * time.Second}, "tcp", address, &tls.Config{})
+	if err != nil {
+		return "✘"
+	}
+	defer conn.Close()
+	reader := bufio.NewReader(conn)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		return "✘"
+	}
+	status := "✘"
+	if strings.HasPrefix(response, "220") {
+		status = "✔"
+	}
+	return status
+}
+
 func emailCheck() string {
-	localServers := []string{"25", "465", "110", "995", "143", "993"}
-	smtpServers := map[string]string{
-		"Gmail":     "smtp.gmail.com",
-		"163":       "smtp.163.com",
-		"Yandex":    "smtp.yandex.com",
-		"Office365": "smtp.office365.com",
-		"QQ":        "smtp.qq.com",
-		"Outlook":   "smtp.outlook.com",
-		"Yahoo":     "smtp.mail.yahoo.com",
-		"Apple":     "smtp.mail.me.com",
-		"MailRU":    "smtp.mail.ru",
-		"AOL":       "smtp.aol.com",
-		"GMX":       "smtp.gmx.com",
-		"MailCOM":   "smtp.mail.com",
-		"Sohu":      "smtp.sohu.com",
-		"Sina":      "smtp.sina.com",
-	}
-	pop3Servers := map[string]string{
-		"Gmail":     "pop.gmail.com",
-		"163":       "pop.163.com",
-		"Yandex":    "pop.yandex.com",
-		"Office365": "outlook.office365.com",
-		"QQ":        "pop.qq.com",
-		"Outlook":   "pop-mail.outlook.com",
-		"Yahoo":     "pop.mail.yahoo.com",
-		"Apple":     "pop.mail.me.com",
-		"MailRU":    "pop.mail.ru",
-		"AOL":       "pop.aol.com",
-		"GMX":       "pop.gmx.com",
-		"MailCOM":   "pop.mail.com",
-		"Sohu":      "pop.sohu.com",
-		"Sina":      "pop.sina.com",
-	}
-	imapServers := map[string]string{
-		"Gmail":     "imap.gmail.com",
-		"163":       "imap.163.com",
-		"Yandex":    "imap.yandex.com",
-		"Office365": "outlook.office365.com",
-		"QQ":        "imap.qq.com",
-		"Outlook":   "imap-mail.outlook.com",
-		"Yahoo":     "imap.mail.yahoo.com",
-		"Apple":     "imap.mail.me.com",
-		"MailRU":    "imap.mail.ru",
-		"AOL":       "imap.aol.com",
-		"GMX":       "imap.gmx.com",
-		"MailCOM":   "imap.mail.com",
-		"Sohu":      "imap.sohu.com",
-		"Sina":      "imap.sina.com",
-	}
 	var wg sync.WaitGroup
-	localChan := make(chan Result, len(localServers))
-	smtpChan := make(chan Result, len(smtpServers))
-	pop3Chan := make(chan Result, len(pop3Servers))
-	imapChan := make(chan Result, len(imapServers))
-	smtpsChan := make(chan Result, len(smtpServers))
-	pop3sChan := make(chan Result, len(pop3Servers))
-	imapsChan := make(chan Result, len(imapServers))
+	localChan := make(chan Result, len(model.LocalServers))
+	smtpChan := make(chan Result, len(model.SmtpServers))
+	pop3Chan := make(chan Result, len(model.Pop3Servers))
+	imapChan := make(chan Result, len(model.ImapServers))
+	smtpsChan := make(chan Result, len(model.SmtpServers))
+	pop3sChan := make(chan Result, len(model.Pop3Servers))
+	imapsChan := make(chan Result, len(model.ImapServers))
 	checkLocal := func(port string) {
 		defer wg.Done()
 		localResult := isLocalPortOpen(port)
@@ -114,7 +87,7 @@ func emailCheck() string {
 	}
 	checkSMTPS := func(name, host string) {
 		defer wg.Done()
-		smtpSSLResult := checkConnection(host, "465")
+		smtpSSLResult := checkConnectionSSL(host, "465")
 		smtpsChan <- Result{name, smtpSSLResult}
 	}
 	checkPOP3 := func(name, host string) {
@@ -124,7 +97,7 @@ func emailCheck() string {
 	}
 	checkPOP3S := func(name, host string) {
 		defer wg.Done()
-		pop3SSLResult := checkConnection(host, "995")
+		pop3SSLResult := checkConnectionSSL(host, "995")
 		pop3sChan <- Result{name, pop3SSLResult}
 	}
 	checkIMAP := func(name, host string) {
@@ -134,38 +107,39 @@ func emailCheck() string {
 	}
 	checkIMAPS := func(name, host string) {
 		defer wg.Done()
-		imapSSLResult := checkConnection(host, "993")
+		imapSSLResult := checkConnectionSSL(host, "993")
 		imapsChan <- Result{name, imapSSLResult}
 	}
-	for _, port := range localServers {
+	for _, port := range model.LocalServers {
 		wg.Add(1)
 		go checkLocal(port)
 	}
-	for name, smtpHost := range smtpServers {
+	for name, smtpHost := range model.SmtpServers {
 		wg.Add(1)
 		go checkSMTP(name, smtpHost)
 	}
-	for name, smtpHost := range smtpServers {
+	for name, smtpHost := range model.SmtpServers {
 		wg.Add(1)
 		go checkSMTPS(name, smtpHost)
 	}
-	for name, pop3Host := range pop3Servers {
+	for name, pop3Host := range model.Pop3Servers {
 		wg.Add(1)
 		go checkPOP3(name, pop3Host)
 	}
-	for name, pop3Host := range pop3Servers {
+	for name, pop3Host := range model.Pop3Servers {
 		wg.Add(1)
 		go checkPOP3S(name, pop3Host)
 	}
-	for name, imapHost := range imapServers {
+	for name, imapHost := range model.ImapServers {
 		wg.Add(1)
 		go checkIMAP(name, imapHost)
 	}
-	for name, imapHost := range imapServers {
+	for name, imapHost := range model.ImapServers {
 		wg.Add(1)
 		go checkIMAPS(name, imapHost)
 	}
 	wg.Wait()
+
 	close(localChan)
 	close(smtpChan)
 	close(pop3Chan)
@@ -221,11 +195,12 @@ func emailCheck() string {
 		}
 	}()
 	wg.Wait()
+
 	var results []string
-	results = append(results, fmt.Sprintf("%-9s %-4s %-4s %-4s %-4s %-4s %-4s", "Platform", "SMTP", "SMTPS", "POP3", "POP3S", "IMAP", "IMAPS"))
-	results = append(results, fmt.Sprintf("%-10s%-4s %-4s %-4s %-4s %-4s %-4s", "LocalPort", temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]))
-	for name, _ := range smtpServers {
-		results = append(results, fmt.Sprintf("%-10s%-4s %-4s %-4s %-4s %-4s %-4s", name,
+	results = append(results, fmt.Sprintf("%-9s %-5s %-5s %-5s %-5s %-5s %-5s", "Platform", "SMTP", "SMTPS", "POP3", "POP3S", "IMAP", "IMAPS"))
+	results = append(results, fmt.Sprintf("%-10s%-5s %-5s %-5s %-5s %-5s %-5s", "LocalPort", temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]))
+	for name, _ := range model.SmtpServers {
+		results = append(results, fmt.Sprintf("%-10s%-5s %-5s %-5s %-5s %-5s %-5s", name,
 			smtpChanMap[name], smtpsChanMap[name], pop3ChanMap[name], pop3sChanMap[name], imapChanMap[name], imapsChanMap[name]))
 	}
 	return strings.Join(results, "\n")
