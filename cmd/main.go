@@ -58,7 +58,6 @@ func emailCheck() string {
 		"Sohu":      "smtp.sohu.com",
 		"Sina":      "smtp.sina.com",
 	}
-
 	pop3Servers := map[string]string{
 		"Gmail":     "pop.gmail.com",
 		"163":       "pop.163.com",
@@ -75,7 +74,6 @@ func emailCheck() string {
 		"Sohu":      "pop.sohu.com",
 		"Sina":      "pop.sina.com",
 	}
-
 	imapServers := map[string]string{
 		"Gmail":     "imap.gmail.com",
 		"163":       "imap.163.com",
@@ -92,11 +90,8 @@ func emailCheck() string {
 		"Sohu":      "imap.sohu.com",
 		"Sina":      "imap.sina.com",
 	}
-
 	var wg sync.WaitGroup
 	resultChan := make(chan string, len(smtpServers)*3)
-
-	// 合并检查函数
 	checkAll := func(name string, smtpHost, pop3Host, imapHost string) {
 		defer wg.Done()
 		smtpResult := checkConnection(smtpHost, "25")
@@ -104,12 +99,10 @@ func emailCheck() string {
 		imapResult := checkConnection(imapHost, "143")
 		resultChan <- fmt.Sprintf("%-9s %-4s %-4s %-4s", name, smtpResult, pop3Result, imapResult)
 	}
-
 	for name := range smtpServers {
 		wg.Add(1)
 		go checkAll(name, smtpServers[name], pop3Servers[name], imapServers[name])
 	}
-
 	wg.Wait()
 	close(resultChan)
 	var results []string
