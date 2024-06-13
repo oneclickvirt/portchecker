@@ -1,6 +1,7 @@
 package model
 
 var LocalServers = []string{"25", "465", "110", "995", "143", "993"}
+var Platforms = []string{"QQ", "163", "Sohu", "Yandex", "Gmail", "Outlook", "Office365", "Yahoo", "MailCOM", "MailRU", "AOL", "GMX", "Sina"}
 var SmtpServers = map[string]string{
 	"Gmail":     "smtp.gmail.com",
 	"163":       "smtp.163.com",
@@ -9,7 +10,7 @@ var SmtpServers = map[string]string{
 	"QQ":        "smtp.qq.com",
 	"Outlook":   "smtp.outlook.com",
 	"Yahoo":     "smtp.mail.yahoo.com",
-	"Apple":     "smtp.mail.me.com",
+	// "Apple":     "smtp.mail.me.com",
 	"MailRU":    "smtp.mail.ru",
 	"AOL":       "smtp.aol.com",
 	"GMX":       "smtp.gmx.com",
@@ -25,7 +26,7 @@ var Pop3Servers = map[string]string{
 	"QQ":        "pop.qq.com",
 	"Outlook":   "pop-mail.outlook.com",
 	"Yahoo":     "pop.mail.yahoo.com",
-	"Apple":     "pop.mail.me.com",
+	// "Apple":     "pop.mail.me.com",
 	"MailRU":    "pop.mail.ru",
 	"AOL":       "pop.aol.com",
 	"GMX":       "pop.gmx.com",
@@ -41,7 +42,7 @@ var ImapServers = map[string]string{
 	"QQ":        "imap.qq.com",
 	"Outlook":   "imap-mail.outlook.com",
 	"Yahoo":     "imap.mail.yahoo.com",
-	"Apple":     "imap.mail.me.com",
+	// "Apple":     "imap.mail.me.com",
 	"MailRU":    "imap.mail.ru",
 	"AOL":       "imap.aol.com",
 	"GMX":       "imap.gmx.com",

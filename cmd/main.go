@@ -199,7 +199,7 @@ func emailCheck() string {
 	var results []string
 	results = append(results, fmt.Sprintf("%-9s %-5s %-5s %-5s %-5s %-5s %-5s", "Platform", "SMTP", "SMTPS", "POP3", "POP3S", "IMAP", "IMAPS"))
 	results = append(results, fmt.Sprintf("%-10s%-5s %-5s %-5s %-5s %-5s %-5s", "LocalPort", temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]))
-	for name, _ := range model.SmtpServers {
+	for _, name := range model.Platforms {
 		results = append(results, fmt.Sprintf("%-10s%-5s %-5s %-5s %-5s %-5s %-5s", name,
 			smtpChanMap[name], smtpsChanMap[name], pop3ChanMap[name], pop3sChanMap[name], imapChanMap[name], imapsChanMap[name]))
 	}
