@@ -4,7 +4,16 @@
 
 端口检测模块 (port checker)
 
-# 使用(Usage)
+## 功能(Features)
+
+- [x] 本机邮件常用端口检测
+- [x] 常用邮件平台的SMTP、POP3、IMAP协议检测
+
+## TODO
+
+- [ ] 常用端口多地区是否阻断检测 
+
+## 使用(Usage)
 
 ```
 curl https://raw.githubusercontent.com/oneclickvirt/portchecker/main/pck_install.sh -sSf | sh
