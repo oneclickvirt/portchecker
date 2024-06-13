@@ -1,7 +1,11 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestMain(t *testing.T) {
-	main()
+	res := emailCheck()
+	fmt.Println(res)
 }
