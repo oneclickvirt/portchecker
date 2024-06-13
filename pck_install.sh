@@ -84,7 +84,4 @@ esac
 chmod 777 pck
 if [ ! -f /usr/bin/pck ]; then
   mv pck /usr/bin/
-  pck
-else
-  ./pck
 fi
