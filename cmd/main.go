@@ -22,5 +22,5 @@ func main() {
 	}
 	fmt.Println("项目地址:", "https://github.com/oneclickvirt/portchecker")
 	res := email.EmailCheck()
-	fmt.Printf("%s\n", res)
+	fmt.Println(res)
 }
