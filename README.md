@@ -15,12 +15,34 @@
 
 ## 使用(Usage)
 
+下载及安装
+
 ```
 curl https://raw.githubusercontent.com/oneclickvirt/portchecker/main/pck_install.sh -sSf | sh
 ```
+
+使用
 
 ```
 pck
 ```
 
+或
+
+```
+./pck
+```
+
+进行测试
+
+```
+
+```
+
 ![图片](https://github.com/oneclickvirt/portchecker/assets/103393591/666f231b-09ba-4c3f-8cf9-c30f43365ddf)
+
+## 在Golang中使用
+
+```
+go get github.com/oneclickvirt/portchecker@latest
+```
