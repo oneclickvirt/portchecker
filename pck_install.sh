@@ -1,8 +1,9 @@
 #!/bin/bash
 #From https://github.com/oneclickvirt/portchecker
-#2024.05.23
+#2024.06.24
 
 rm -rf /usr/bin/pck
+rm -rf pck
 os=$(uname -s)
 arch=$(uname -m)
 
@@ -82,6 +83,4 @@ case $os in
 esac
 
 chmod 777 pck
-if [ ! -f /usr/bin/pck ]; then
-  mv pck /usr/bin/
-fi
+cp pck /usr/bin/pck
