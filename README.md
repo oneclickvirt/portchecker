@@ -35,11 +35,15 @@ pck
 
 进行测试
 
-```
-
-```
-
 ![图片](https://github.com/oneclickvirt/portchecker/assets/103393591/666f231b-09ba-4c3f-8cf9-c30f43365ddf)
+
+
+## 卸载
+
+```
+rm -rf /root/pck
+rm -rf /usr/bin/pck
+```
 
 ## 在Golang中使用
 
