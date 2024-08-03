@@ -1,6 +1,6 @@
 package model
 
-var Version = "v0.0.1"
+var Version = "v0.0.2"
 var LocalServers = []string{"25", "465", "110", "995", "143", "993"}
 var Platforms = []string{"QQ", "163", "Sohu", "Yandex", "Gmail", "Outlook", "Office365", "Yahoo", "MailCOM", "MailRU", "AOL", "GMX", "Sina"}
 var SmtpServers = map[string]string{

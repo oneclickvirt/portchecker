@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -20,9 +21,15 @@ type Result struct {
 func isLocalPortOpen(port string) string {
 	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {
+		if runtime.GOOS == "windows" {
+			return "N"
+		}
 		return "✘"
 	}
 	ln.Close()
+	if runtime.GOOS == "windows" {
+		return "Y"
+	}
 	return "✔"
 }
 
@@ -30,17 +37,32 @@ func checkConnection(host string, port string) string {
 	address := net.JoinHostPort(host, port)
 	conn, err := net.DialTimeout("tcp", address, 5*time.Second)
 	if err != nil {
+		if runtime.GOOS == "windows" {
+			return "N"
+		}
 		return "✘"
 	}
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 	response, err := reader.ReadString('\n')
 	if err != nil {
+		if runtime.GOOS == "windows" {
+			return "N"
+		}
 		return "✘"
 	}
-	status := "✘"
+	var status string
+	if runtime.GOOS == "windows" {
+		status = "N"
+	} else {
+		status = "✘"
+	}
 	if strings.Split(response, " ")[0] == "220" || strings.Split(response, " ")[0] == "+OK" || strings.Contains(response, "* OK") {
-		status = "✔"
+		if runtime.GOOS == "windows" {
+			status = "Y"
+		} else {
+			status = "✔"
+		}
 	}
 	return status
 }
@@ -49,17 +71,32 @@ func checkConnectionSSL(host string, port string) string {
 	address := net.JoinHostPort(host, port)
 	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: 5 * time.Second}, "tcp", address, &tls.Config{})
 	if err != nil {
+		if runtime.GOOS == "windows" {
+			return "N"
+		}
 		return "✘"
 	}
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 	response, err := reader.ReadString('\n')
 	if err != nil {
+		if runtime.GOOS == "windows" {
+			return "N"
+		}
 		return "✘"
 	}
-	status := "✘"
+	var status string
+	if runtime.GOOS == "windows" {
+		status = "N"
+	} else {
+		status = "✘"
+	}
 	if strings.HasPrefix(response, "220") {
-		status = "✔"
+		if runtime.GOOS == "windows" {
+			status = "Y"
+		} else {
+			status = "✔"
+		}
 	}
 	return status
 }
