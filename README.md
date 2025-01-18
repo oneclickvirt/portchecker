@@ -36,8 +36,7 @@ pck
 
 进行测试
 
-![图片](https://github.com/oneclickvirt/portchecker/assets/103393591/666f231b-09ba-4c3f-8cf9-c30f43365ddf)
-
+![image](https://github.com/user-attachments/assets/a6aeebf1-c5b1-4a18-91ac-8242f2107ec5)
 
 ## 卸载
 
@@ -49,5 +48,5 @@ rm -rf /usr/bin/pck
 ## 在Golang中使用
 
 ```
-go get github.com/oneclickvirt/portchecker@latest
+go get -u github.com/oneclickvirt/portchecker@latest
 ```
