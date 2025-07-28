@@ -20,7 +20,7 @@ func main() {
 		fmt.Println(model.Version)
 		return
 	}
-	fmt.Println("项目地址:", "https://github.com/oneclickvirt/portchecker")
+	fmt.Println("Repo:", "https://github.com/oneclickvirt/portchecker")
 	res := email.EmailCheck()
 	fmt.Println(res)
 }
