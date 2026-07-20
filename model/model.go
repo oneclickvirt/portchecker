@@ -1,12 +1,24 @@
 package model
 
-var Version = "v0.0.3"
+var Version = "v0.0.4"
 var LocalServers = []string{"25", "465", "110", "995", "143", "993"}
 var Platforms = []string{
 	"QQ", "163", "Sohu", "Yandex", "Gmail", "Outlook", "Office365",
 	"Yahoo", "MailCOM", "MailRU", "AOL", "GMX", "Sina", "Apple",
 	"FastMail", "ProtonMail", "MXRoute", "Namecrane", "XYAMail",
 	"ZohoMail", "Inbox_eu", "Free_fr",
+}
+
+// Domains contains the mail domain whose MX records should be tested for each
+// platform. These are explicit because removing one label from an SMTP host is
+// not valid for hosts such as smtp.mail.yahoo.com.
+var Domains = map[string]string{
+	"QQ": "qq.com", "163": "163.com", "Sohu": "sohu.com", "Yandex": "yandex.com",
+	"Gmail": "gmail.com", "Outlook": "outlook.com", "Office365": "office365.com",
+	"Yahoo": "yahoo.com", "MailCOM": "mail.com", "MailRU": "mail.ru", "AOL": "aol.com",
+	"GMX": "gmx.com", "Sina": "sina.com", "Apple": "me.com", "FastMail": "fastmail.com",
+	"ProtonMail": "proton.me", "MXRoute": "mxrouting.net", "Namecrane": "workspace.org",
+	"XYAMail": "xyamail.com", "ZohoMail": "zoho.com", "Inbox_eu": "inbox.eu", "Free_fr": "free.fr",
 }
 
 var SmtpServers = map[string]string{
