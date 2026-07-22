@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -14,14 +15,58 @@ import (
 	"github.com/oneclickvirt/portchecker/model"
 )
 
+type cliOptions struct {
+	help, version, jsonOutput bool
+	timeout                   time.Duration
+	platforms, mxDomain       string
+}
+
+func parseCLI(args []string) (cliOptions, error) {
+	opts := cliOptions{}
+	fs := newFlagSet(&opts, io.Discard)
+	if err := fs.Parse(args); err != nil {
+		return opts, err
+	}
+	if fs.NArg() != 0 {
+		return opts, fmt.Errorf("unexpected positional arguments: %s", strings.Join(fs.Args(), " "))
+	}
+	if opts.help || opts.version {
+		return opts, nil
+	}
+	if opts.timeout <= 0 || opts.timeout > 2*time.Minute {
+		return opts, fmt.Errorf("timeout must be greater than zero and at most 2m")
+	}
+	return opts, nil
+}
+
+func newFlagSet(opts *cliOptions, output io.Writer) *flag.FlagSet {
+	fs := flag.NewFlagSet("portchecker", flag.ContinueOnError)
+	fs.SetOutput(output)
+	fs.BoolVar(&opts.help, "h", false, "show help")
+	fs.BoolVar(&opts.version, "v", false, "show version")
+	fs.DurationVar(&opts.timeout, "timeout", 30*time.Second, "set mail endpoint check deadline")
+	fs.BoolVar(&opts.jsonOutput, "json", false, "output the versioned JSON report")
+	fs.StringVar(&opts.platforms, "platforms", "", "comma-separated platform names to check (empty checks all)")
+	fs.StringVar(&opts.mxDomain, "mx-domain", "", "add one extra domain for dynamic MX priority checking")
+	return fs
+}
+
+func printCLIHelp(program string) {
+	fmt.Printf("Usage: %s [options]\n", program)
+	newFlagSet(&cliOptions{}, os.Stdout).PrintDefaults()
+}
+
 func main() {
-	showVersion := flag.Bool("v", false, "show version")
-	timeout := flag.Duration("timeout", 30*time.Second, "set mail endpoint check deadline")
-	jsonOutput := flag.Bool("json", false, "output the versioned JSON report")
-	platforms := flag.String("platforms", "", "comma-separated platform names to check (empty checks all)")
-	mxDomain := flag.String("mx-domain", "", "add one extra domain for dynamic MX priority checking")
-	flag.Parse()
-	if *showVersion {
+	opts, err := parseCLI(os.Args[1:])
+	if err != nil {
+		fmt.Fprintln(os.Stderr, sanitizeErrorText(err.Error()))
+		os.Exit(2)
+	}
+	if opts.help {
+		printCLIHelp(os.Args[0])
+		return
+	}
+	if opts.version {
 		fmt.Println(model.Version)
 		return
 	}
@@ -31,19 +76,16 @@ func main() {
 			_ = response.Body.Close()
 		}
 	}()
-	if *timeout <= 0 || *timeout > 2*time.Minute {
-		*timeout = 30 * time.Second
-	}
-	specs, err := selectPlatformSpecs(email.DefaultPlatformSpecs(), *platforms, *mxDomain)
+	specs, err := selectPlatformSpecs(email.DefaultPlatformSpecs(), opts.platforms, opts.mxDomain)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, sanitizeErrorText(err.Error()))
 		os.Exit(2)
 	}
 	fmt.Fprintln(os.Stderr, "Repo:", "https://github.com/oneclickvirt/portchecker")
-	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), opts.timeout)
 	defer cancel()
 	report := email.CheckMail(ctx, specs, nil, nil, nil)
-	if *jsonOutput {
+	if opts.jsonOutput {
 		encoder := json.NewEncoder(os.Stdout)
 		encoder.SetIndent("", "  ")
 		if err := encoder.Encode(report); err != nil {

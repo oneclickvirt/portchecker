@@ -1,6 +1,6 @@
 package model
 
-var Version = "v0.0.6"
+var Version = "v0.0.7"
 var LocalServers = []string{"25", "465", "110", "995", "143", "993"}
 var Platforms = []string{
 	"QQ", "163", "Sohu", "Yandex", "Gmail", "Outlook", "Office365",
