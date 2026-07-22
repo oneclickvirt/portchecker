@@ -36,7 +36,7 @@ func main() {
 	}
 	specs, err := selectPlatformSpecs(email.DefaultPlatformSpecs(), *platforms, *mxDomain)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, sanitizeErrorText(err.Error()))
 		os.Exit(2)
 	}
 	fmt.Fprintln(os.Stderr, "Repo:", "https://github.com/oneclickvirt/portchecker")
@@ -52,7 +52,7 @@ func main() {
 		}
 		return
 	}
-	fmt.Println(email.FormatMailReport(report))
+	fmt.Println(indentLegacyOutput(email.FormatMailReport(report)))
 }
 
 func selectPlatformSpecs(all []email.PlatformSpec, selection, extraDomain string) ([]email.PlatformSpec, error) {
