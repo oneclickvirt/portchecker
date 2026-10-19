@@ -51,5 +51,5 @@ rm -rf /usr/bin/pck
 ## 在Golang中使用
 
 ```
-go get github.com/oneclickvirt/portchecker@v0.0.3-20250728015900
+go get github.com/oneclickvirt/portchecker@v0.0.4-20261019011815
 ```
