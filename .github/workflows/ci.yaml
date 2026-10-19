@@ -14,7 +14,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
-        go-version: ${{ matrix.go }}
+        go-version-file: go.mod
     - name: Test
       run: go test ./... -coverprofile=coverage.txt
     - name: Create Tag
@@ -37,9 +37,16 @@ jobs:
     - name: Commit and Push README.md
       if: success()
       run: |
+        set -euo pipefail
+        git config user.name 'github-actions[bot]'
+        git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
         git add README.md
-        git commit -m "Update README.md with new tag ${TAG}"
-        git push origin main
+        if git diff --cached --quiet; then
+          echo 'README.md unchanged; skipping commit.'
+        else
+          git commit -m "Update README.md with new tag ${TAG}"
+          git push origin main
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     env:
