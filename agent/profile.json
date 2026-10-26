@@ -1,0 +1,36 @@
+{
+  "repository": "oneclickvirt/portchecker",
+  "branch": "main",
+  "skill_name": "oneclickvirt-portchecker",
+  "purpose": "Check mail endpoint connectivity; report per-endpoint errors and blocked ports without claiming mail delivery.",
+  "notes": [
+    "Read probe_help from the installed binary before assuming flags are supported. MCP returns native JSON when the program provides JSON, otherwise native text.",
+    "Keep partial/network errors distinct from confirmed test outcomes. Current release assets and their actual architecture are available through release_assets."
+  ],
+  "guide": "https://www.spiritlhl.net/guide/agent_integrations.html",
+  "releases": true,
+  "mcp": true,
+  "binary": "pck",
+  "asset_prefix": "portchecker",
+  "presets": {
+    "mail": {
+      "args": [
+        "-json",
+        "-timeout",
+        "8s"
+      ],
+      "timeout": 15
+    }
+  },
+  "benchmark": false,
+  "source_files": [
+    "cmd/main.go",
+    "go.mod",
+    "pck_install.sh"
+  ],
+  "purpose_zh": "检查邮件服务端口连通性，区分端口受限、连接失败与邮件实际投递。",
+  "notes_zh": [
+    "先用 probe_help 核对已安装程序的实际帮助。程序支持 JSON 时返回原生 JSON，否则返回原生文本。",
+    "区分部分结果、网络失败和确定结论；通过 release_assets 查询当前真实产物及架构。"
+  ]
+}
