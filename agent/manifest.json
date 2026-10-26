@@ -4,8 +4,8 @@
   "mcp": true,
   "files": {
     "agent/profile.json": "2d3b92a04927060e53a6030445e50f7077f70fc50d18aef70d7a7bc056dfcc2d",
-    "skills/oneclickvirt-portchecker/SKILL.md": "4678eca8f2a98c68f69f72f99045b30eb7dd57632e5d46084423221bea240f19",
-    "skills/oneclickvirt-portchecker/SKILL_ZH.md": "6b5bfe74bc27cd3fddd6ea3f3ea3b739f03ed1b31e3f742b4d7d9f8e980775c4",
-    "agent/server.py": "c54981973f8d98e6eada6e0442f3d7e5c9296947706c2c5d33b80b7f9a1c9b5b"
+    "skills/oneclickvirt-portchecker/SKILL.md": "23890704f289ab6056b638d1581d7882c2d74101c7719e7d503c95308a446fff",
+    "skills/oneclickvirt-portchecker/SKILL_ZH.md": "9b6ba512de3eb05c2e628c859e345cc73ace27b32c5c0f4e59b02ebe54888416",
+    "agent/server.py": "f4fe673f355a9b8ab06b4f8c1f90251e0ad79e1d9324ee4d62eff5e12ac45b74"
   }
 }
